@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from BookingApp.exceptions import BookingNotFoundError
 from BookingApp.hotel_room import HotelRoom
 from BookingApp.schemas.property_schema import CreatePropertyRequest
 from BookingApp.schemas.user_schema import CreateUserRequest
@@ -144,6 +145,19 @@ def create_booking(request: CreateBookingRequest):
         "number_of_nights": booking.number_of_nights,
         "total_price": booking.calculate_total_price()
     }
+
+
+@app.delete("/bookings/{booking_id}")
+def delete_booking(booking_id: int):
+    try:
+        booking_service.cancel_booking(booking_id)
+    except BookingNotFoundError:
+        raise HTTPException(
+            status_code=404,
+            detail="Booking not found"
+        )
+
+    return {"message": "Booking deleted"}
 
 
 @app.post("/properties")
